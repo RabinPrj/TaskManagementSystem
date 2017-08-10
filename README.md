@@ -1,6 +1,8 @@
 # TaskManagementSystem
 
-Note:You need active Internet connectionfor some script to Work 
+#Note:You need active Internet connectionfor some script to Work
+
+#Just run the project using visual studio no need for database connection as mssql local db is used
 
 This is the simple task management system to create, update, delete and view task detail of which are explained below.
 Task List(/Task/Index): List the created task in table. The list consist of task name and action column. Action column consists of edit, details and delete buttons.
