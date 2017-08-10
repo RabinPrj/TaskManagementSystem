@@ -1,0 +1,107 @@
+﻿@model TaskMgmtSystem.Models.TaskModel
+
+@{
+    ViewBag.Title = "Task";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+   
+}
+
+<h2>@ViewBag.Form</h2>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @id = "taskForm", @novalidate = "novalidate" }))
+{
+    @Html.AntiForgeryToken()
+    
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true)
+        @if (Model.Id != Guid.Empty)
+        {
+            <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+        }
+
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Name, new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.Name, new { @required="required"})
+                @Html.ValidationMessageFor(model => model.Name)
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Description, new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.Description, new { @rows="5"})
+                @Html.ValidationMessageFor(model => model.Description)
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" id="btn-submit" value="Save" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section Scripts{
+
+    <script>
+        ///<refrence path='/DashBoard/app/UI/Query' />
+        if (!window.app) {
+            window.app = {};
+        }
+
+        app.UI = app.UI || {};
+        app.UI.CreateTask = (function ($) {
+
+            var $tbl;
+            var InitUI = function () {
+                InitEvent();
+            },
+                InitEvent = function () {
+                    
+
+                    $(document).on("click", "#btn-submit", function (e) {
+                        $(this).attr('disabled', '');
+                        e.preventDefault();
+                        $("#taskForm").validate();
+                        if (!$("#taskForm").valid()) {
+                            return;
+                        }
+
+                        $.ajax({
+                            type: "POST",
+                            url: "/Task/SaveTask",
+                            data: $('#taskForm').serialize()
+                        }).done(function (response) {
+                            $(this).removeAttr('disabled');
+                            if (response.success) {
+                                bootbox.alert("Success");
+                                setTimeout(function () {
+                                    window.location.href = "/Task";
+                                },1000)
+                            } else {
+                                $(this).removeAttr('disabled');
+                                bootbox.alert("Error");
+                            }
+                        }).fail(function (error) {
+                            bootbox.alert("The process cannot be continued because of error.");
+                        });
+                    })
+
+                };
+   
+
+            return {
+                InitUI: InitUI
+            };
+        }(jQuery));
+        jQuery(app.UI.CreateTask.InitUI);
+    </script>
+}

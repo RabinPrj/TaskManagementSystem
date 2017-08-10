@@ -1,0 +1,130 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Index</h2>
+<div class="row">
+    <a href="/Task/CreateTask" class="btn btn-primary">Add Task</a> 
+</div>
+<div class="row">
+    <table class="table table-responsive table-striped" id="tblItem">
+        <thead>
+            <tr>
+                <td>SN</td>
+                <td>Name</td>
+                <td>Action</td>
+            </tr>
+        </thead>
+    </table>  
+</div>
+
+
+@section Scripts{
+
+
+    <script>
+        ///<refrence path='/DashBoard/app/UI/Query' />
+        if (!window.app) {
+            window.app = {};
+        }
+
+        app.UI = app.UI || {};
+        app.UI.Task = (function ($) {
+
+            var $tbl;
+            var InitUI = function () {
+                InitEvent();
+            },
+                InitEvent = function () {
+                    fnRefreshtGrid();
+
+                    $(document).on('click', '#tblItem .btn-detail', fnDetail);
+                   // $(document).on('click', '#tblItem .btn-edit', fnEdit);
+                    $(document).on('click', '#tblItem .btn-del', fnDelete);
+
+
+                },
+                fnDetail = function (e) {
+                    var data = JSON.parse($(this).attr('data-val'));
+
+                    var html = '<div class="row">';
+                    html += '<h3>' + data.Name + '</h3>';
+                    html += '<p>' + data.Description + '</p>';
+                    html += '<p align="left"><small>' + data.CreateDate + '</small></p>';
+
+                    bootbox.alert(html);
+                },
+     
+                fnDelete = function (e) {
+                    var id = $(this).attr('data-id');
+                    bootbox.confirm("Are you sure you want to delete this task?", function (result) {
+
+                        if (result) {
+                            $.ajax({
+                                type: "POST",
+                                url: "/Task/DeleteTask",
+                                data: { Id: id }
+                            }).done(function (response) {
+                                if (response.success) {
+                                    $tbl.ajax.reload(null,false)
+                                }
+                                bootbox.alert(response.message);
+
+                            }).fail(function (error) {
+                                bootbox.alert(error.message);
+                            });
+                        }
+                    });
+
+                },
+                fnRefreshtGrid = function (data) {
+                    $tbl = $('#tblItem').DataTable({
+                        "bProcessing": true,
+                        "sPagination": true,
+                        "bAutoWidth": true,
+                        "destroy": true,
+                        "serverSide": false,
+                        "sAjaxSource": "/Task/GetAllTask",
+                        "aoColumnDefs": [{
+                            "mData": null,
+                            "aTargets": [0]
+                        }, {
+                            "mData": 'Name',
+                            "aTargets": [1],
+                            "bSortable": true,
+                            "bSearchable": true
+                        },{
+                            "mData": null,
+                            "aTargets": [2],
+                            "bSortable": false,
+                            "bSearchable": false,
+                            "mRender": function (data, type, full) {
+                                var dd = "";
+                                dd += "<button type='button' class='btn btn-info btn-detail' data-val='" + JSON.stringify(full) + "'>Detail</button>";
+                                dd += "<a  class='btn btn-secondary btn-edit' href='/Task/EditTask?Id="+ full.Id + "'>edit</a>";
+                                dd += "<button type='button' class='btn btn-danger btn-del' data-id='" + full.Id + "'>del</button>";
+
+                                return dd;
+
+                            }
+                        }, ],
+                        "createdRow": function (row, data, index) {
+                            $('td', row).eq(0).html(index + 1);
+                        },
+                        "order": [
+                            [1, 'desc']
+                        ]
+                    });
+
+
+                };
+
+            return {
+                InitUI: InitUI
+            };
+        }(jQuery));
+        jQuery(app.UI.Task.InitUI);
+    </script>
+}
